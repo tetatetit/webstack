@@ -3,6 +3,7 @@
 RANDOMHAM=$(date +%s|sha256sum|base64|head -c 10)
 RANDOMSPAM=$(date +%s|sha256sum|base64|head -c 10)
 RANDOMVIRUS=$(date +%s|sha256sum|base64|head -c 10)
+HOSTNAME=$(hostname -s)
 
 #Install a DNS Server and Zimbra Collaboration 8.6
 echo "Installing DNS Server"
@@ -10,7 +11,6 @@ sudo apt-get update && sudo sudo apt-get install -y bind9 bind9utils bind9-doc
 echo "Configuring DNS Server"
 sed "s/-u/-4 -u/g" /etc/default/bind9 > /etc/default/bind9.new
 mv /etc/default/bind9.new /etc/default/bind9
-HOSTNAME=$(hostname -a)
 rm /etc/bind/named.conf.options
 cat <<EOF >>/etc/bind/named.conf.options
 options {
@@ -177,3 +177,9 @@ echo "Installing Zimbra Collaboration just the Software"
 cd /tmp/zcs/zcs-* && ./install.sh -s < /tmp/zcs/installZimbra-keystrokes
 echo "Installing Zimbra Collaboration injecting the configuration"
 /opt/zimbra/libexec/zmsetup.pl -c /tmp/zcs/installZimbraScript
+echo "Installing Zimbra Collaboration Patch 7"
+wget https://files.zimbra.com/downloads/8.6.0_GA/zcs-patch-8.6.0_GA_1200.tgz
+tar xzf zcs-patch-8.6.0_GA_1200.tgz
+cd zcs-patch-8.6.0_GA_1200
+./installPatch.sh
+su - zimbra -c 'zmcontrol restart'
