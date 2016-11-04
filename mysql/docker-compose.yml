@@ -9,7 +9,7 @@ services:
     extends:
       file: config.yml
       service: myadmin
-    image: tetatetit/myadmin
+    image: tetatetit/phpmyadmin
     depends_on:
       - mysql
     ports:
