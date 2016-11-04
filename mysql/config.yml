@@ -1,0 +1,10 @@
+# Custom config adding/overriding base mysql and myadmin services only
+# To ovveride anything - use docker-compose.override.yml but works only
+# if to docker-compose up it as standalone/project stack, not as part of another
+version: '2'
+services:
+  mysql:
+    environment:
+      MYSQL_ROOT_PASSWORD: "W5rW3Fd8z"
+  myadmin:
+

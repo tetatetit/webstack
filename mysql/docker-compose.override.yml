@@ -1,0 +1,9 @@
+version: '2'
+services:
+  mysql:
+    extends:
+      file: config.yml
+      service: mysql
+volumes:
+  data:
+    driver: local
