@@ -6,9 +6,9 @@ RANDOMVIRUS=$(date +%s|sha256sum|base64|head -c 10)
 HOSTNAME=$(hostname -s)
 
 #Install a DNS Server and Zimbra Collaboration 8.6
-echo "Installing DNS Server"
+if [ "$4" == "bind" ]; then
 sudo apt-get update && sudo sudo apt-get install -y bind9 bind9utils bind9-doc
-echo "Configuring DNS Server"
+echo "Installing Bind DNS Server"
 sed "s/-u/-4 -u/g" /etc/default/bind9 > /etc/default/bind9.new
 mv /etc/default/bind9.new /etc/default/bind9
 rm /etc/bind/named.conf.options
@@ -38,24 +38,39 @@ touch /etc/bind/db.$1
 cat <<EOF >/etc/bind/db.$1
 \$TTL  604800
 @      IN      SOA    ns1.$1. root.localhost. (
-                              2        ; Serial
+                                2        ; Serial
                         604800        ; Refresh
-                          86400        ; Retry
+                        86400        ; Retry
                         2419200        ; Expire
                         604800 )      ; Negative Cache TTL
-;
-@     IN      NS      ns1.$1.
-@     IN      A      $2
-@     IN      MX     10     $HOSTNAME.$1.
-$HOSTNAME     IN      A      $2
-ns1     IN      A      $2
-mail     IN      A      $2
-pop3     IN      A      $2
-imap     IN      A      $2
-imap4     IN      A      $2
-smtp     IN      A      $2
+    ;
+    @     IN      NS      ns1.$1.
+    @     IN      A      $2
+    @     IN      MX     10     $HOSTNAME.$1.
+    $HOSTNAME     IN      A      $2
+    ns1     IN      A      $2
+    mail     IN      A      $2
+    pop3     IN      A      $2
+    imap     IN      A      $2
+    imap4     IN      A      $2
+    smtp     IN      A      $2
 EOF
 sudo service bind9 restart
+else
+echo "Installing bind DNS Server"
+sudo apt-get update && sudo sudo apt-get install -y dnsmasq
+echo "Configuring DNS Server"
+mv /etc/dnsmasq.conf /etc/dnsmasq.conf.old
+cat <<EOF >>/etc/dnsmasq.conf
+server=8.8.8.8
+listen-address=127.0.0.1
+domain=$1
+mx-host=$1,$HOSTNAME.$1,0
+address=/$HOSTNAME.$1/$2
+EOF
+sudo service dnsmasq restart
+fi
+
 echo "Download and install Zimbra Collaboration dependencies"
 sudo apt-get install -y netcat-openbsd sudo libidn11 libpcre3 libgmp10 libexpat1 libstdc++6 libperl5.18 libaio1 resolvconf unzip pax sysstat sqlite3
 echo "Creating the Scripts files"
@@ -183,3 +198,6 @@ tar xzf zcs-patch-8.6.0_GA_1200.tgz
 cd zcs-patch-8.6.0_GA_1200
 ./installPatch.sh
 su - zimbra -c 'zmcontrol restart'
+echo "You can access now to your Zimbra Collaboration Server"
+echo "Admin Console: https://"$2":7071"
+echo "Web Client: https://"$2
