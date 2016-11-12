@@ -83,7 +83,12 @@ The ZimbraEasyInstall Script is an easy way to install Zimbra Collaboration, wit
 
 Just run the Script adding the TLD domain for your Zimbra Collaboration server, the IP of the DNS server (usually will be the same of the server, but instead you are using different eth interfaces), and add the password for the Zimbra Collaboration server.
 ```bash
-root@zimbramail:/home/oper# ./ZimbraEasyInstall zimbralab.local 192.168.211.40 Zimbra2015
+root@zimbramail:/home/oper# ./ZimbraEasyInstall zimbralab.local 192.168.211.40 Zimbra2016
+```
+###Bind as a DNS Server###
+You can now choose if you want dnsmasq or bind for your DNS Server with ZimbraEasyInstall, by default if you don't select anything after the password, it will automatically install dnsmasq, if you add the flag bind, then it will install bind before ZCS:
+```bash
+root@zimbramail:/home/oper# ./ZimbraEasyInstall zimbralab.local 192.168.211.40 Zimbra2016 bind
 ```
 ##Access to the Web Client and Admin Console
 The Script will take care of everything and after a few minutes you can go to the IP of your server and use the next URL:
@@ -94,7 +99,7 @@ The Script will take care of everything and after a few minutes you can go to th
 - [ ] Prepare and configure automatically the Reverse DNS Zone
 - [ ] Make it multi-platform to use it in CentOS/RedHat, Suse and Ubuntu 12.04
 - [ ] Make it Multi-Server, to install in each server only the rol that selects (LDAP, Mailbox, MTA, PROXY, UI)
-- [ ] Have the option to select Bind, dnsmasq, or external DNS
+- [x] Have the option to select Bind, dnsmasq, or external DNS
 - [ ] Have the option to select the Timezone, the default one is Los Angeles
 
 ## Please note that an alternative Zimbra Docker is available from  ZeXtras
