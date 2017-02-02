@@ -17,7 +17,7 @@ RUN apt-get update \\
     && rm -f /etc/msmtprc \\
     && ln -s /var/www/msmtprc /etc/msmtprc \\
 # Misc admin/config/test/develop stuff \\
-    && apt-get install -y man vim nano mc screen git rsync mariadb-client cron aptitude info bzip2 augeas-tools \\
+    && apt-get install -y man wget vim nano mc screen git rsync mariadb-client cron aptitude info bzip2 augeas-tools \\
                           command-not-found xz-utils ctags dialog net-tools htop atop byobu screenie gawk \\
                           libpng12-dev libjpeg-dev libpq-dev libmcrypt-dev \\
 # Hint on command not found and cleanup \\
