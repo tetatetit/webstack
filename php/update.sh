@@ -19,6 +19,8 @@ function gen {
   [ ! -f $TAG/config.yml ] && ./config.yml.tpl > $TAG/config.yml
 }
 
+gen 7.1-apache
+gen 7.1-fpm
 gen 7.0-apache
 gen 7.0-fpm
 gen 5.6-apache
