@@ -25,6 +25,8 @@ RUN apt-get update \\
 # SSH server \\
                           openssh-server \\
     && augtool set /files//etc/ssh/sshd_config/PermitRootLogin "yes" \\
+# Vim tweaks \\
+    && sed -i 's/"syntax on/syntax on/g' /etc/vim/vimrc \\
 # Cleanup and update \\
     && rm -rf /var/lib/apt/lists/* \\
     && update-command-not-found \\
@@ -33,7 +35,7 @@ RUN apt-get update \\
 "#!/bin/bash\n\\
 set -e\n\\
 \n\\
-docker-php-entrypoint-hook.sh\n\\
+docker-entrypoint-hook.sh\n\\
 \n\\
 [ -f /var/www/msmtprc ] || ( cat <<EOF\n\\
 host smtp\n\\
@@ -50,15 +52,15 @@ service cron start\n\\
 service ssh start\n\\
 \n\\
 exec \"\\\$@\"\n\\
-" > /usr/local/bin/docker-php-entrypoint.sh \\
-    && chmod +x /usr/local/bin/docker-php-entrypoint.sh \\
+" > /usr/local/bin/docker-entrypoint.sh \\
+    && chmod +x /usr/local/bin/docker-entrypoint.sh \\
     && echo \\
 "#!/bin/bash\n\\
 \n\\
 set -e\n\\
 \n\\
-" > /usr/local/bin/docker-php-entrypoint-hook.sh \\
-    && chmod +x /usr/local/bin/docker-php-entrypoint-hook.sh
+" > /usr/local/bin/docker-entrypoint-hook.sh \\
+    && chmod +x /usr/local/bin/docker-entrypoint-hook.sh
 END
 
 [[ $TAG != *hhvm* ]] && cat <<END
