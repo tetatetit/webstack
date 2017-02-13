@@ -18,18 +18,17 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get -y install \
   libgmp10 \
   libexpat1 \
   libstdc++6 \
-  libperl5.18 \
+  libperl5.22 \
   libaio1 \
   netcat-openbsd \
   pax \
-  resolvconf \
   sqlite3 \
   sudo \
   sysstat \
   unzip \
-  openssh-server
-  cron
-  vim
+  openssh-server \
+  cron \
+  vim \
   mc
 
 VOLUME ["/opt/zimbra"]
