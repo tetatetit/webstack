@@ -26,7 +26,11 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get -y install \
   sqlite3 \
   sudo \
   sysstat \
-  unzip
+  unzip \
+  openssh-server
+  cron
+  vim
+  mc
 
 VOLUME ["/opt/zimbra"]
 
