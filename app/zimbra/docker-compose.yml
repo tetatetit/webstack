@@ -10,7 +10,7 @@ services:
     image: tetatetit/zimbra
     volumes:
       - data:/opt/zimbra
-    environment:
+#    environment:
 #      PASSWORD: 'YourPassword'
     ports:
       - '80:80'
