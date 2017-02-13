@@ -134,11 +134,11 @@ zimbra_require_interprocess_security="1"
 INSTALL_PACKAGES="zimbra-core zimbra-ldap zimbra-logger zimbra-mta zimbra-snmp zimbra-store zimbra-apache zimbra-spell zimbra-memcached zimbra-proxy"
 EOF
 ##Install the Zimbra Collaboration ##
-echo "Downloading Zimbra Collaboration 8.6"
-wget -O /opt/zimbra-install/zimbra-zcs-8.6.0.tar.gz https://files.zimbra.com/downloads/8.6.0_GA/zcs-8.6.0_GA_1153.UBUNTU14_64.20141215151116.tgz
+echo "Downloading Zimbra Collaboration 8.7"
+wget -O /opt/zimbra-install/zimbra-zcs-8.7.2.tar.gz https://files.zimbra.com/downloads/8.7.2_GA/zcs-8.7.2_GA_1736.UBUNTU16_64.20170131053933.tgz
 
 echo "Extracting files from the archive"
-tar xzvf /opt/zimbra-install/zimbra-zcs-8.6.0.tar.gz -C /opt/zimbra-install/
+tar xzvf /opt/zimbra-install/zimbra-zcs-8.7.2.tar.gz -C /opt/zimbra-install/
 
 echo "Installing Zimbra Collaboration just the Software"
 cd /opt/zimbra-install/zcs-* && ./install.sh -s < /opt/zimbra-install/installZimbra-keystrokes
