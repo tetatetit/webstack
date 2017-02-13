@@ -1,0 +1,18 @@
+version: '2'
+services:
+  reverse-proxy:
+    image: tetatetit/proxy
+    volumes:
+      - certs:/etc/nginx/certs
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+    networks:
+      - mysql
+    ports:
+      - '80:80'
+volumes:
+  certs:
+    driver: local
+networks:
+  mysql:
+    external:
+      name: mysql_default
