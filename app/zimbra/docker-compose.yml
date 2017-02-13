@@ -13,7 +13,6 @@ services:
 #    environment:
 #      PASSWORD: 'YourPassword'
     ports:
-      - '80:80'
       - '25:25'
       - '456:456'
       - '587:587'
