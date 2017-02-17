@@ -1,6 +1,8 @@
 #!/bin/sh
+
 ## Preparing all the variables like IP, Hostname, etc, all of them from the container
 sleep 5
+DATA_DIR=/var/lib/zimbra
 HOSTNAME=$(hostname -s)
 DOMAIN=$(hostname -d)
 CONTAINERIP=$(ip addr | grep 'state UP' -A2 | tail -n1 | awk '{print $2}' | cut -f1  -d'/')
@@ -8,39 +10,76 @@ RANDOMHAM=$(date +%s|sha256sum|base64|head -c 10)
 RANDOMSPAM=$(date +%s|sha256sum|base64|head -c 10)
 RANDOMVIRUS=$(date +%s|sha256sum|base64|head -c 10)
 
-## Installing the DNS Server ##
 echo "Configuring DNS Server"
-sed "s/-u/-4 -u/g" /etc/default/bind9 > /etc/default/bind9.new
-mv /etc/default/bind9.new /etc/default/bind9
-rm /etc/bind/named.conf.options
-cat <<EOF >>/etc/bind/named.conf.options
+cat <<EOF > /etc/bind/named.conf.options
 options {
 directory "/var/cache/bind";
-listen-on { $CONTAINERIP; }; # ns1 private IP address - listen on private network only
+
+listen-on { localnets; }; # ns1 private IP address - listen on private network only
 allow-transfer { none; }; # disable zone transfers by default
+
 forwarders {
-8.8.8.8;
-8.8.4.4;
+  127.0.0.11;
+  8.8.8.8;
+  8.8.4.4;
 };
 auth-nxdomain no; # conform to RFC1035
 #listen-on-v6 { any; };
 };
 EOF
-mv /etc/bind/db.domain /etc/bind/db.$DOMAIN
+cat <<EOF > /etc/bind/named.conf.local
+zone "$DOMAIN" {
+        type master;
+        file "/etc/bind/db.$DOMAIN";
+};
+EOF
+cat <<EOF > /etc/bind/db.$DOMAIN
+\$TTL  604800
+@      IN      SOA    ns1.$DOMAIN. root.localhost. (
+                              2        ; Serial
+                        604800        ; Refresh
+                          86400        ; Retry
+                        2419200        ; Expire
+                        604800 )      ; Negative Cache TTL
+;
+@     IN      NS      ns1.$DOMAIN.
+@     IN      A      $CONTAINERIP
+@     IN      MX     10     $HOSTNAME.$DOMAIN.
+$HOSTNAME     IN      A      $CONTAINERIP
+ns1      IN      A      $CONTAINERIP
+mail     IN      A      $CONTAINERIP
+pop3     IN      A      $CONTAINERIP
+imap     IN      A      $CONTAINERIP
+imap4    IN      A      $CONTAINERIP
+smtp     IN      A      $CONTAINERIP
+EOF
 
-sed -i 's/\$DOMAIN/'$DOMAIN'/g' \
-  /etc/bind/db.$DOMAIN \
-  /etc/bind/named.conf.local
+cat <<EOF > /etc/resolv.conf
+nameserver 127.0.0.1
+options ndots:0
+EOF
 
-sed -i 's/\$HOSTNAME/'$HOSTNAME'/g' /etc/bind/db.$DOMAIN
+#service rsyslog start
+service bind9 start
+service cron start
+service ssh start
 
-sed -i 's/\$CONTAINERIP/'$CONTAINERIP'/g' /etc/bind/db.$DOMAIN
-
-sudo service bind9 restart
-
-##Creating the Zimbra Collaboration Config File ##
-touch /opt/zimbra-install/installZimbraScript
-cat <<EOF >/opt/zimbra-install/installZimbraScript
+if [ ! -f /opt/zimbra/initial-setup-config ]; then
+  link_to_data_basenames="backup conf contrib data db fbqueue index initial-setup-config log logger redolog ssl store zmstat"
+  link_to_data_dir() {
+    cd /opt/zimbra
+    $@
+    for link in $link_to_data_basenames; do
+      ln -s $DATA_DIR/$link $link
+    done
+  }
+  if [ -f $DATA_DIR/initial-setup-config ]; then
+    echo "Just reconfiguring/updating Zimbra"
+    link_to_data_dir rm -rf $link_to_data_basenames
+  else
+    echo "Configuring Zimbra from scratch"
+    ##Creating the Zimbra Collaboration Config File ##
+    cat <<EOF > /opt/zimbra/initial-setup-config
 AVDOMAIN="$DOMAIN"
 AVUSER="admin@$DOMAIN"
 CREATEADMIN="admin@$DOMAIN"
@@ -115,15 +154,14 @@ mailboxd_keystore_password="$PASSWORD"
 mailboxd_server="jetty"
 mailboxd_truststore="/opt/zimbra/java/jre/lib/security/cacerts"
 mailboxd_truststore_password="changeit"
-postfix_mail_owner="postfix"
 postfix_setgid_group="postdrop"
 ssl_default_digest="sha256"
 zimbraFeatureBriefcasesEnabled="Enabled"
 zimbraFeatureTasksEnabled="Enabled"
 zimbraIPMode="ipv4"
 zimbraMailProxy="FALSE"
-zimbraMtaMyNetworks="127.0.0.0/8 $CONTAINERIP/24 [::1]/128 [fe80::]/64"
-zimbraPrefTimeZoneId="America/Los_Angeles"
+#zimbraMtaMyNetworks="127.0.0.0/8 $CONTAINERIP/24 [::1]/128 [fe80::]/64"
+zimbraPrefTimeZoneId="Europe/Kiev"
 zimbraReverseProxyLookupTarget="TRUE"
 zimbraVersionCheckNotificationEmail="admin@$DOMAIN"
 zimbraVersionCheckNotificationEmailFrom="admin@$DOMAIN"
@@ -133,23 +171,31 @@ zimbra_ldap_userdn="uid=zimbra,cn=admins,cn=zimbra"
 zimbra_require_interprocess_security="1"
 INSTALL_PACKAGES="zimbra-core zimbra-ldap zimbra-logger zimbra-mta zimbra-snmp zimbra-store zimbra-apache zimbra-spell zimbra-memcached zimbra-proxy"
 EOF
-##Install the Zimbra Collaboration ##
-echo "Downloading Zimbra Collaboration 8.7"
-wget -O /opt/zimbra-install/zimbra-zcs-8.7.2.tar.gz https://files.zimbra.com/downloads/8.7.2_GA/zcs-8.7.2_GA_1736.UBUNTU16_64.20170131053933.tgz
+  fi
+  /opt/zimbra/libexec/zmsetup.pl -c /opt/zimbra/initial-setup-config
+  if [ ! -f $DATA_DIR/initial-setup-config ]; then
+    mkdir -p $DATA_DIR
+    echo "Stopping Zimbra"
+    sudo -i -u zimbra zmcontrol stop
+    sleep 20
+    echo "Moving data apart from code to the separate directory which conveniently can be a volume"
+    link_to_data_dir mv $link_to_data_basenames $DATA_DIR
+    #echo "Extra step to configure syslog to avoid 'Some services are not running' as well as 'Message: system failure: Unable to read logger stats Error code: service.FAILURE Method: [unknown] Details:soap:Receiver'"
+    #service rsyslog stop
+    #pkill rsyslog
+    #./libexec/zmsyslogsetup
+  fi
+fi
 
-echo "Extracting files from the archive"
-tar xzvf /opt/zimbra-install/zimbra-zcs-8.7.2.tar.gz -C /opt/zimbra-install/
+if ! pgrep java; then
+  echo "Starting Zimbra"
+  sudo -i -u zimbra zmcontrol start
+fi
 
-echo "Installing Zimbra Collaboration just the Software"
-cd /opt/zimbra-install/zcs-* && ./install.sh -s < /opt/zimbra-install/installZimbra-keystrokes
-
-echo "Installing Zimbra Collaboration injecting the configuration"
-/opt/zimbra/libexec/zmsetup.pl -c /opt/zimbra-install/installZimbraScript
-
-if [[ $1 == "-d" ]]; then
+if [ $1 == "-d" ]; then
   while true; do sleep 1000; done
 fi
 
-if [[ $1 == "-bash" ]]; then
+if [ $1 == "-bash" ]; then
   /bin/bash
 fi
