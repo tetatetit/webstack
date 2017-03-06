@@ -7,7 +7,7 @@ docker/docker-compose based web stack/server/environment (or even rather ifrastr
 - Postgres
 - phpMyAdmin
 
-Images can be used in any necesary combination sharing same IP address as well as HTTP/HTTPS port using #jwidler/nginx-proxy.
+Images can be used in any necesary combination sharing same IP address as well as HTTP/HTTPS port using #jwidler/nginx-proxy
 
 Also now working on including images for mail/groupware handling:
 - Zimbra
