@@ -97,7 +97,7 @@ EXPOSE 22 443
 
 CMD ["apache2-foreground"]
 
-ENTRYPOINT ["docker-php-entrypoint.sh"]
+ENTRYPOINT ["docker-entrypoint.sh"]
 
 #TODO:
 # * fix term not set
