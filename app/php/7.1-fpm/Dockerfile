@@ -98,7 +98,7 @@ EXPOSE 443
 
 CMD ["php-fpm"]     
 
-ENTRYPOINT ["docker-php-entrypoint.sh"]
+ENTRYPOINT ["docker-entrypoint.sh"]
 
 #TODO:
 # * fix term not set
