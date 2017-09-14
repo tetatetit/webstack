@@ -46,7 +46,7 @@ COPY opt /opt/
 
 ##Install the Zimbra Collaboration ##
 RUN \
-  wget https://files.zimbra.com/downloads/8.7.2_GA/zcs-8.7.2_GA_1736.UBUNTU16_64.20170131053933.tgz \
+  wget https://files.zimbra.com/downloads/8.7.11_GA/zcs-8.7.11_GA_1854.UBUNTU16_64.20170531151956.tgz \
 #  wget https://files.zimbra.com/downloads/8.6.0_GA/zcs-8.6.0_GA_1153.UBUNTU14_64.20141215151116.tgz \
   && tar xzvf zcs-*.tgz && rm zcs-*.tgz && cd zcs-* \
   && /bin/bash -c '\
