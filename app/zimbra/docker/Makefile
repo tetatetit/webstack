@@ -1,4 +1,4 @@
-IMAGE=zimbra_docker
+IMAGE=zimbra
 
 .PHONY: all build
 

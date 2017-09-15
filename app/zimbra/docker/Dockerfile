@@ -3,12 +3,12 @@
 # Based on Ubuntu 14.04
 # Created by Jorge de la Cruz
 #################################################################
-FROM ubuntu:16.04
-MAINTAINER Jorge de la Cruz <jorgedlcruz@gmail.com>
+FROM ubuntu:xenial
+MAINTAINER Serhiy Berezin <zimbra@tetatet.it>
 
 RUN \
   mkdir -p /var/lib/resolvconf && touch /var/lib/resolvconf/linkified && \
-  apt-get update && DEBIAN_FRONTEND=noninteractive apt-get -y install \
+  apt-get update && DEBIAN_FRONTEND=noninteractive apt-get -y upgrade && DEBIAN_FRONTEND=noninteractive apt-get -y install \
   wget \
   openssh-client \
   bind9 \
@@ -44,20 +44,26 @@ EXPOSE 22 25 465 587 110 143 993 995 80 443 8080 8443 7071
 
 COPY opt /opt/
 
-##Install the Zimbra Collaboration ##
+##Install the Zimbra Collaboration #
+
 RUN \
-  wget https://files.zimbra.com/downloads/8.7.11_GA/zcs-8.7.11_GA_1854.UBUNTU16_64.20170531151956.tgz \
-#  wget https://files.zimbra.com/downloads/8.6.0_GA/zcs-8.6.0_GA_1153.UBUNTU14_64.20141215151116.tgz \
-  && tar xzvf zcs-*.tgz && rm zcs-*.tgz && cd zcs-* \
-  && /bin/bash -c '\
-                   hostname() { echo zimbra.localdomain; }; \
-                   export -f hostname; \
-                   echo "127.0.0.1 `hostname`" >> /etc/hosts; \
-                   echo -e "y\ny\ny\ny\ny\nn\ny\ny\ny\ny\ny\ny\ny\ny\n" | ./install.sh -s \
-                  '\
-  && rm -rf /zcs-* \
-  && ln -s /opt/zimbra/common/lib/jvm/openjdk-1.8.0_92-zimbra /opt/zimbra/java \
-  && sed "s/-u/-4 -u/g" /etc/default/bind9 > /etc/default/bind9.new \
+  sed "s/-u/-4 -u/g" /etc/default/bind9 > /etc/default/bind9.new \
   && mv /etc/default/bind9.new /etc/default/bind9
+
+RUN \
+  rm -rf /opt/zimbra \
+  && wget https://files.zimbra.com/downloads/8.7.11_GA/zcs-8.7.11_GA_1854.UBUNTU16_64.20170531151956.tgz \
+  && tar xzvf zcs-*.tgz && rm zcs-*.tgz
+
+RUN \
+  cd zcs-* \
+  && /bin/bash -c '\
+                    hostname() { echo zimbra.localdomain; }; \
+                    export -f hostname; \
+                    echo "127.0.0.1 `hostname`" >> /etc/hosts; \
+                     echo -e "y\ny\ny\ny\ny\nn\ny\ny\ny\ny\ny\ny\ny\ny\ny\n" | ./install.sh -s \
+                  ' \
+  && rm -rf /zcs-* \
+  && ln -s /opt/zimbra/common/lib/jvm/openjdk-1.8.0_144-zimbra /opt/zimbra/java
 
 CMD ["/bin/bash", "/opt/start.sh", "-d"]
